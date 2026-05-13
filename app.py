@@ -10,7 +10,7 @@ import sys
 import uuid
 from datetime import datetime
 
-from flask import Flask, render_template, request, jsonify, session
+from flask import Flask, render_template, request, jsonify, session, send_from_directory
 from flask_cors import CORS
 
 from config.config import get_config
@@ -53,6 +53,15 @@ def create_app():
         app_logger.warning(f"DB 초기화 경고: {e} — DB 없이 기본 모드로 실행")
 
     # ── 라우트 등록 ────────────────────────────────────────────
+
+    @app.route("/favicon.ico")
+    def favicon():
+        """파비콘 제공"""
+        return send_from_directory(
+            os.path.join(app.root_path, "static"),
+            "favicon.svg",
+            mimetype="image/svg+xml",
+        )
 
     @app.route("/")
     def index():
