@@ -1,154 +1,260 @@
 {% extends "base.html" %}
-{% block title %}당첨 번호 조회 - 로또의 정석{% endblock %}
+{% block title %}당첨 번호 - 로또의 정석{% endblock %}
+
+{% block extra_head %}
+<style>
+/* ── history 페이지 전용 ── */
+.hist-toolbar { display:flex; align-items:center; gap:var(--spacing-3); margin-bottom:var(--spacing-5); flex-wrap:wrap; justify-content:space-between; }
+.hist-search-wrap { display:flex; gap:var(--spacing-2); align-items:center; }
+.hist-search { border:1.5px solid var(--color-border); border-radius:var(--radius-md); padding:var(--spacing-2) var(--spacing-3); font-size:var(--font-size-sm); font-family:inherit; outline:none; width:120px; transition:border-color .2s; }
+.hist-search:focus { border-color:var(--color-primary); }
+.hist-meta { font-size:var(--font-size-sm); color:var(--color-text-muted); }
+
+.hist-table-wrap { overflow-x:auto; }
+.hist-table { width:100%; border-collapse:collapse; font-size:var(--font-size-sm); min-width:640px; }
+.hist-table th { background:var(--color-surface); padding:var(--spacing-2) var(--spacing-3); text-align:left; font-weight:700; border-bottom:2px solid var(--color-border); color:var(--color-text-muted); font-size:var(--font-size-xs); text-transform:uppercase; letter-spacing:.04em; }
+.hist-table td { padding:var(--spacing-2) var(--spacing-3); border-bottom:1px solid var(--color-border-light,#f0f0f0); vertical-align:middle; }
+.hist-table tr:hover td { background:var(--color-surface); }
+.hist-table tr.hl td { background:rgba(37,99,235,.07); }
+.balls-inline { display:flex; gap:4px; align-items:center; }
+.ball-sep { color:var(--color-text-muted); font-size:.75rem; margin:0 2px; }
+.ball-xs { width:28px!important; height:28px!important; font-size:.68rem!important; flex-shrink:0; }
+
+/* 페이지네이션 */
+.hist-pagination { display:flex; align-items:center; justify-content:center; gap:var(--spacing-2); margin-top:var(--spacing-6); flex-wrap:wrap; }
+.pg-btn { min-width:36px; height:36px; border:1.5px solid var(--color-border); border-radius:var(--radius-md); background:transparent; font-size:var(--font-size-sm); font-weight:600; cursor:pointer; padding:0 var(--spacing-2); transition:.15s; }
+.pg-btn:hover:not(:disabled) { border-color:var(--color-primary); color:var(--color-primary); }
+.pg-btn.active { background:var(--color-primary); border-color:var(--color-primary); color:#fff; }
+.pg-btn:disabled { opacity:.35; cursor:default; }
+.pg-info { font-size:var(--font-size-sm); color:var(--color-text-muted); padding:0 var(--spacing-2); }
+
+/* 스켈레톤 */
+.skel-row { display:flex; gap:8px; padding:10px 12px; border-bottom:1px solid var(--color-border-light,#f0f0f0); }
+.skel-cell { height:20px; border-radius:4px; background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%); background-size:200% 100%; animation:skelShimmer 1.4s infinite; }
+@keyframes skelShimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+@media(max-width:640px){ .hist-toolbar { flex-direction:column; align-items:flex-start; } }
+</style>
+{% endblock %}
 
 {% block content %}
 <div class="page-header">
   <div class="container">
-    <h1 class="page-title"><span aria-hidden="true">🎰</span> 역대 당첨 번호</h1>
-    <p class="page-desc">총 {{ "{:,}".format(total_count) }}회차의 당첨 번호를 확인하세요.</p>
+    <h1 class="page-title"><span aria-hidden="true">📋</span> 역대 당첨 번호</h1>
+    <p class="page-desc" id="histDesc">전체 회차 당첨 번호를 불러오는 중...</p>
   </div>
 </div>
 
 <div class="container section">
 
-  <!-- 검색 필터 -->
-  <div class="history-filter" role="search" aria-label="회차 검색">
-    <input type="number" id="searchEpsd" class="form-input" placeholder="회차 검색 (예: 1150)"
-           min="1" aria-label="검색할 회차 번호 입력" />
-    <button class="btn btn-primary" id="searchBtn" aria-label="회차 검색 실행">
-      <span aria-hidden="true">🔍</span> 검색
-    </button>
+  <!-- 로딩 -->
+  <div id="histLoading" aria-live="polite">
+    <div style="display:flex;gap:8px;margin-bottom:12px;">
+      <div class="skel-cell" style="width:80px;height:32px;border-radius:8px;"></div>
+      <div class="skel-cell" style="width:140px;height:32px;border-radius:8px;"></div>
+    </div>
+    <div class="hist-table-wrap">
+      <table class="hist-table" aria-hidden="true">
+        <thead><tr>
+          <th style="width:70px">회차</th><th style="width:90px">추첨일</th>
+          <th>당첨 번호</th><th style="width:55px">합산</th>
+          <th style="width:80px">1등 인원</th><th style="width:130px">1인 1등 당첨금</th>
+        </tr></thead>
+        <tbody id="histSkelRows"></tbody>
+      </table>
+    </div>
   </div>
 
-  <!-- 당첨 번호 테이블 -->
-  {% if rounds %}
-  <div class="table-responsive" role="region" aria-label="역대 당첨 번호 표">
-    <table class="data-table history-table" aria-label="역대 로또 당첨 번호 목록">
-      <thead>
-        <tr>
+  <!-- 실제 콘텐츠 -->
+  <div id="histContent" hidden>
+    <div class="hist-toolbar">
+      <span class="hist-meta" id="histMeta"></span>
+      <div class="hist-search-wrap">
+        <label for="histSearch" class="sr-only">회차 검색</label>
+        <input type="number" id="histSearch" class="hist-search"
+               placeholder="회차 번호 검색" min="1" aria-label="회차 번호로 검색"/>
+        <button class="btn btn-sm btn-outline" id="histSearchBtn" aria-label="검색">검색</button>
+        <button class="btn btn-sm btn-ghost"   id="histSearchClear" aria-label="검색 초기화" hidden>✕</button>
+      </div>
+    </div>
+
+    <div class="hist-table-wrap">
+      <table class="hist-table" aria-label="역대 로또 당첨 번호 목록">
+        <thead><tr>
           <th scope="col">회차</th>
           <th scope="col">추첨일</th>
           <th scope="col">당첨 번호</th>
           <th scope="col">합산</th>
           <th scope="col">1등 인원</th>
-          <th scope="col">1등 당첨금</th>
-          <th scope="col">2등</th>
-          <th scope="col">3등</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for r in rounds %}
-        <tr>
-          <td><strong class="epsd-num">{{ r.lt_epsd }}회</strong></td>
-          <td class="date-cell">{{ r.lt_rfl_ymd | format_date }}</td>
-          <td>
-            <div class="balls-inline"
-                 aria-label="{{ r.lt_epsd }}회 당첨 번호: {{ r.tm1_wn_no }} {{ r.tm2_wn_no }} {{ r.tm3_wn_no }} {{ r.tm4_wn_no }} {{ r.tm5_wn_no }} {{ r.tm6_wn_no }} 보너스 {{ r.bns_wn_no }}">
-              {% for n in [r.tm1_wn_no, r.tm2_wn_no, r.tm3_wn_no,
-                           r.tm4_wn_no, r.tm5_wn_no, r.tm6_wn_no] %}
-              <span class="ball ball-xs {{ n | number_color }}" aria-hidden="true">{{ n }}</span>
-              {% endfor %}
-              <span class="ball-sep" aria-hidden="true">+</span>
-              <span class="ball ball-xs bonus {{ r.bns_wn_no | number_color }}"
-                    aria-label="보너스 {{ r.bns_wn_no }}">{{ r.bns_wn_no }}</span>
-            </div>
-          </td>
-          <td class="sum-cell">{{ r.num_sum }}</td>
-          <td>{{ r.rnk1_wn_nope | format_currency }}명</td>
-          <td class="amount-cell">{{ r.rnk1_wn_amt | format_currency }}원</td>
-          <td>{{ r.rnk2_wn_nope | format_currency }}명</td>
-          <td>{{ r.rnk3_wn_nope | format_currency }}명</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+          <th scope="col">1인 1등 당첨금</th>
+        </tr></thead>
+        <tbody id="histBody"></tbody>
+      </table>
+    </div>
+
+    <div class="hist-pagination" id="histPagination" role="navigation" aria-label="페이지 탐색"></div>
   </div>
 
-  <!-- 페이지네이션 -->
-  {% if total_pages > 1 %}
-  <nav class="pagination" aria-label="페이지 탐색">
-    <ul class="page-list" role="list">
-      <!-- 처음 -->
-      {% if page > 1 %}
-      <li>
-        <a href="{{ url_for('history', page=1) }}" class="page-btn" aria-label="첫 페이지">«</a>
-      </li>
-      <li>
-        <a href="{{ url_for('history', page=page-1) }}" class="page-btn" aria-label="이전 페이지">‹</a>
-      </li>
-      {% endif %}
-
-      <!-- 페이지 번호 -->
-      {% set start_page = [1, page - 2] | max %}
-      {% set end_page   = [total_pages, page + 2] | min %}
-      {% for p in range(start_page, end_page + 1) %}
-      <li>
-        <a href="{{ url_for('history', page=p) }}"
-           class="page-btn {% if p == page %}active{% endif %}"
-           {% if p == page %}aria-current="page"{% endif %}
-           aria-label="{{ p }}페이지">{{ p }}</a>
-      </li>
-      {% endfor %}
-
-      <!-- 마지막 -->
-      {% if page < total_pages %}
-      <li>
-        <a href="{{ url_for('history', page=page+1) }}" class="page-btn" aria-label="다음 페이지">›</a>
-      </li>
-      <li>
-        <a href="{{ url_for('history', page=total_pages) }}" class="page-btn" aria-label="마지막 페이지">»</a>
-      </li>
-      {% endif %}
-    </ul>
-    <p class="page-info" aria-live="polite">
-      {{ page }} / {{ total_pages }} 페이지 (총 {{ "{:,}".format(total_count) }}개)
-    </p>
-  </nav>
-  {% endif %}
-
-  {% else %}
-  <div class="empty-state">
-    <div class="empty-icon" aria-hidden="true">📭</div>
-    <h2>데이터가 없습니다</h2>
-    <p>배치 프로그램을 실행하여 로또 당첨 데이터를 수집해 주세요.</p>
-    <a href="{{ url_for('about') }}" class="btn btn-outline">배치 실행 방법 보기</a>
+  <!-- 오류 -->
+  <div id="histError" hidden style="text-align:center;padding:60px 0;">
+    <p style="font-size:1.1rem;color:#EF4444;margin-bottom:12px;">⚠️ 데이터를 불러올 수 없습니다.</p>
+    <button class="btn btn-primary" onclick="location.reload()">새로고침</button>
   </div>
-  {% endif %}
+
 </div>
 {% endblock %}
 
 {% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/lotto-data.js') }}"></script>
 <script>
-  // 회차 번호 검색 (클라이언트 사이드 필터)
-  document.getElementById('searchBtn').addEventListener('click', function () {
-    const val = document.getElementById('searchEpsd').value.trim();
-    if (!val) return;
-    const epsd = parseInt(val, 10);
-    if (isNaN(epsd) || epsd < 1) {
-      alert('올바른 회차 번호를 입력해 주세요.');
-      return;
-    }
-    // 서버 사이드 검색: 해당 회차가 포함된 페이지로 이동
-    // 간단 구현: API로 검색 후 하이라이트 처리 (단순히 행 검색)
-    const rows = document.querySelectorAll('.history-table tbody tr');
-    let found = false;
-    rows.forEach(function(row) {
-      const text = row.querySelector('.epsd-num');
-      if (text && text.textContent.replace(/[^0-9]/g, '') === String(epsd)) {
-        row.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        row.classList.add('highlight-row');
-        setTimeout(() => row.classList.remove('highlight-row'), 3000);
-        found = true;
-      }
-    });
-    if (!found) {
-      alert(`${epsd}회차 데이터가 현재 페이지에 없습니다.\n다른 페이지를 확인해 주세요.`);
-    }
+'use strict';
+
+var _histList    = [];
+var _filteredList= [];
+var _currentPage = 1;
+var PER_PAGE     = 50;
+
+/* 스켈레톤 채우기 */
+(function() {
+  var tbody = document.getElementById('histSkelRows');
+  if (!tbody) return;
+  var rows = '';
+  for (var i = 0; i < 12; i++) {
+    rows += '<tr class="skel-row" aria-hidden="true">'
+      + '<td><div class="skel-cell" style="width:50px"></div></td>'
+      + '<td><div class="skel-cell" style="width:75px"></div></td>'
+      + '<td><div class="skel-cell" style="width:220px"></div></td>'
+      + '<td><div class="skel-cell" style="width:35px"></div></td>'
+      + '<td><div class="skel-cell" style="width:55px"></div></td>'
+      + '<td><div class="skel-cell" style="width:110px"></div></td>'
+      + '</tr>';
+  }
+  tbody.innerHTML = rows;
+})();
+
+/* 데이터 로드 */
+LottoData.load()
+  .then(function(list) {
+    _histList     = list;
+    _filteredList = list;
+    document.getElementById('histLoading').hidden  = true;
+    document.getElementById('histContent').hidden  = false;
+    document.getElementById('histDesc').textContent = '역대 ' + list.length.toLocaleString() + '회차 전체 당첨 번호';
+    renderPage(1);
+    initSearch();
+  })
+  .catch(function() {
+    document.getElementById('histLoading').hidden = true;
+    document.getElementById('histError').hidden   = false;
   });
 
-  // Enter 키로 검색
-  document.getElementById('searchEpsd').addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') document.getElementById('searchBtn').click();
+/* ─ 페이지 렌더 ─ */
+function renderPage(page) {
+  _currentPage = page;
+  var list     = _filteredList;
+  var total    = list.length;
+  var totalPages = Math.ceil(total / PER_PAGE);
+  var start    = (page - 1) * PER_PAGE;
+  var slice    = list.slice(start, start + PER_PAGE);
+
+  /* 메타 */
+  document.getElementById('histMeta').textContent =
+    total.toLocaleString() + '회차 중 ' +
+    (start + 1).toLocaleString() + '~' +
+    Math.min(start + PER_PAGE, total).toLocaleString() + ' 표시';
+
+  /* 테이블 */
+  var html = slice.map(function(r) {
+    var sum  = r.tm1WnNo + r.tm2WnNo + r.tm3WnNo + r.tm4WnNo + r.tm5WnNo + r.tm6WnNo;
+    return '<tr>'
+      + '<td><strong>' + r.ltEpsd + '회</strong></td>'
+      + '<td style="white-space:nowrap">' + LottoData.formatDate(r.ltRflYmd) + '</td>'
+      + '<td><div class="balls-inline">' + LottoData.roundBallsHTML(r, 'ball-xs') + '</div></td>'
+      + '<td>' + sum + '</td>'
+      + '<td>' + LottoData.formatMoney(r.rnk1WnNope) + '명</td>'
+      + '<td style="white-space:nowrap">' + LottoData.formatMoney(r.rnk1WnAmt) + '원</td>'
+      + '</tr>';
+  }).join('');
+  document.getElementById('histBody').innerHTML = html;
+
+  /* 페이지네이션 */
+  renderPagination(page, totalPages);
+
+  /* 스크롤 최상단 */
+  document.getElementById('histContent').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function renderPagination(current, total) {
+  if (total <= 1) { document.getElementById('histPagination').innerHTML = ''; return; }
+
+  var btns = '';
+  /* 이전 */
+  btns += '<button class="pg-btn" ' + (current <= 1 ? 'disabled' : '') + ' data-page="' + (current-1) + '" aria-label="이전 페이지">‹</button>';
+
+  /* 페이지 번호 (슬라이딩 윈도우) */
+  var start = Math.max(1, current - 2);
+  var end   = Math.min(total, start + 4);
+  start     = Math.max(1, end - 4);
+
+  if (start > 1) {
+    btns += '<button class="pg-btn" data-page="1" aria-label="1페이지">1</button>';
+    if (start > 2) btns += '<span class="pg-info">…</span>';
+  }
+  for (var p = start; p <= end; p++) {
+    btns += '<button class="pg-btn' + (p === current ? ' active' : '') + '" data-page="' + p + '" aria-label="' + p + '페이지"' + (p === current ? ' aria-current="page"' : '') + '>' + p + '</button>';
+  }
+  if (end < total) {
+    if (end < total - 1) btns += '<span class="pg-info">…</span>';
+    btns += '<button class="pg-btn" data-page="' + total + '" aria-label="마지막 페이지">' + total + '</button>';
+  }
+
+  /* 다음 */
+  btns += '<button class="pg-btn" ' + (current >= total ? 'disabled' : '') + ' data-page="' + (current+1) + '" aria-label="다음 페이지">›</button>';
+
+  var wrap = document.getElementById('histPagination');
+  wrap.innerHTML = btns;
+  wrap.querySelectorAll('.pg-btn:not(:disabled)').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      renderPage(parseInt(this.dataset.page, 10));
+    });
   });
+}
+
+/* ─ 회차 검색 ─ */
+function initSearch() {
+  var input    = document.getElementById('histSearch');
+  var searchBtn= document.getElementById('histSearchBtn');
+  var clearBtn = document.getElementById('histSearchClear');
+
+  function doSearch() {
+    var val = input.value.trim();
+    if (!val) { resetSearch(); return; }
+    var epsd = parseInt(val, 10);
+    _filteredList = _histList.filter(function(r){ return r.ltEpsd === epsd; });
+    clearBtn.hidden = false;
+    renderPage(1);
+    if (_filteredList.length === 0) {
+      document.getElementById('histBody').innerHTML =
+        '<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--color-text-muted);">'
+        + epsd + '회차 데이터를 찾을 수 없습니다.</td></tr>';
+      document.getElementById('histPagination').innerHTML = '';
+      document.getElementById('histMeta').textContent = '검색 결과 없음';
+    } else {
+      /* 하이라이트 */
+      document.querySelectorAll('#histBody tr').forEach(function(tr){ tr.classList.add('hl'); });
+    }
+  }
+
+  function resetSearch() {
+    input.value   = '';
+    clearBtn.hidden = true;
+    _filteredList = _histList;
+    renderPage(1);
+  }
+
+  searchBtn.addEventListener('click', doSearch);
+  clearBtn.addEventListener('click', resetSearch);
+  input.addEventListener('keydown', function(e){ if (e.key === 'Enter') doSearch(); });
+}
 </script>
 {% endblock %}
