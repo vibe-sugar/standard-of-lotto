@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<!--
+  파일명: templates/base.html
+  목적: 로또의 정석 - 공통 레이아웃 베이스 템플릿
+  작성일: 2026-05-13
+  버전: 1.0.0
+-->
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="로또의 정석 - 데이터 기반 스마트 로또 번호 추천 서비스" />
+  <meta name="keywords" content="로또, 로또번호추천, 로또번호, 로또분석, 번호추천" />
+  <meta property="og:title" content="로또의 정석" />
+  <meta property="og:description" content="역대 당첨 데이터 분석 기반 스마트 로또 번호 추천" />
+  <meta property="og:type" content="website" />
+  <title>{% block title %}로또의 정석{% endblock %}</title>
+
+  <!-- Pretendard 폰트 -->
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+  <link rel="stylesheet" as="style" crossorigin
+    href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+
+  <!-- 공통 CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+  <!-- 접근성: 본문 바로가기 -->
+  <a href="#main-content" class="skip-link">본문 바로가기</a>
+
+  <!-- ════════════════════ HEADER ════════════════════ -->
+  <header class="site-header" role="banner">
+    <div class="header-inner container">
+      <!-- 로고 -->
+      <a href="{{ url_for('index') }}" class="logo" aria-label="로또의 정석 홈으로 이동">
+        <span class="logo-icon" aria-hidden="true">🎯</span>
+        <span class="logo-text">로또의 <strong>정석</strong></span>
+      </a>
+
+      <!-- 모바일 햄버거 버튼 -->
+      <button class="nav-toggle" id="navToggle"
+              aria-label="메뉴 열기/닫기" aria-expanded="false" aria-controls="mainNav">
+        <span class="hamburger"></span>
+        <span class="hamburger"></span>
+        <span class="hamburger"></span>
+      </button>
+
+      <!-- 내비게이션 -->
+      <nav class="main-nav" id="mainNav" role="navigation" aria-label="주요 메뉴">
+        <ul class="nav-list" role="list">
+          <li>
+            <a href="{{ url_for('index') }}"
+               class="nav-link {% if request.endpoint == 'index' %}active{% endif %}"
+               {% if request.endpoint == 'index' %}aria-current="page"{% endif %}>
+              홈
+            </a>
+          </li>
+          <li>
+            <a href="{{ url_for('recommend') }}"
+               class="nav-link {% if request.endpoint == 'recommend' %}active{% endif %}"
+               {% if request.endpoint == 'recommend' %}aria-current="page"{% endif %}>
+              번호 추천
+            </a>
+          </li>
+          <li>
+            <a href="{{ url_for('statistics') }}"
+               class="nav-link {% if request.endpoint == 'statistics' %}active{% endif %}"
+               {% if request.endpoint == 'statistics' %}aria-current="page"{% endif %}>
+              통계 분석
+            </a>
+          </li>
+          <li>
+            <a href="{{ url_for('history') }}"
+               class="nav-link {% if request.endpoint == 'history' %}active{% endif %}"
+               {% if request.endpoint == 'history' %}aria-current="page"{% endif %}>
+              당첨 번호
+            </a>
+          </li>
+          <li>
+            <a href="{{ url_for('about') }}"
+               class="nav-link {% if request.endpoint == 'about' %}active{% endif %}"
+               {% if request.endpoint == 'about' %}aria-current="page"{% endif %}>
+              서비스 소개
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ════════════════════ MAIN ════════════════════ -->
+  <main id="main-content" tabindex="-1">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- ════════════════════ FOOTER ════════════════════ -->
+  <footer class="site-footer" role="contentinfo">
+    <div class="container">
+      <div class="footer-grid">
+        <!-- 브랜드 -->
+        <div class="footer-brand">
+          <a href="{{ url_for('index') }}" class="footer-logo" aria-label="로또의 정석 홈으로 이동">
+            <span aria-hidden="true">🎯</span> 로또의 <strong>정석</strong>
+          </a>
+          <p class="footer-tagline">데이터로 분석하는 스마트 로또</p>
+        </div>
+
+        <!-- 메뉴 -->
+        <nav class="footer-nav" aria-label="푸터 메뉴">
+          <h3 class="footer-nav-title">메뉴</h3>
+          <ul role="list">
+            <li><a href="{{ url_for('recommend') }}">번호 추천</a></li>
+            <li><a href="{{ url_for('statistics') }}">통계 분석</a></li>
+            <li><a href="{{ url_for('history') }}">당첨 번호</a></li>
+            <li><a href="{{ url_for('about') }}">서비스 소개</a></li>
+          </ul>
+        </nav>
+
+        <!-- 안내 -->
+        <div class="footer-info">
+          <h3 class="footer-nav-title">안내</h3>
+          <p>본 서비스는 로또 당첨을 보장하지 않으며,<br>
+             엔터테인먼트 목적으로 제공됩니다.</p>
+          <p>로또는 사행행위로, 과도한 구매를 삼가시기 바랍니다.</p>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>© 2026 로또의 정석. All rights reserved.</p>
+        <p class="footer-data-source">
+          당첨 데이터 출처: <a href="https://www.dhlottery.co.kr" target="_blank" rel="noopener noreferrer">동행복권 공식 홈페이지</a>
+        </p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- 공통 JS -->
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

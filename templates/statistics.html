@@ -1,0 +1,302 @@
+{% extends "base.html" %}
+{% block title %}통계 분석 - 로또의 정석{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <h1 class="page-title"><span aria-hidden="true">📊</span> 통계 분석</h1>
+    <p class="page-desc">역대 {{ total_rounds }}회차 데이터를 기반으로 한 번호 분석 결과입니다.</p>
+  </div>
+</div>
+
+<div class="container section">
+
+  <!-- 탭 네비게이션 -->
+  <div class="stat-tabs" role="tablist" aria-label="통계 분석 탭">
+    <button class="stat-tab active" role="tab" id="st-freq" aria-selected="true" aria-controls="sp-freq">
+      번호별 출현 빈도
+    </button>
+    <button class="stat-tab" role="tab" id="st-sum" aria-selected="false" aria-controls="sp-sum">
+      합산 구간 분포
+    </button>
+    <button class="stat-tab" role="tab" id="st-trend" aria-selected="false" aria-controls="sp-trend">
+      최근 회차 번호
+    </button>
+  </div>
+
+  <!-- ══ 패널 1: 번호별 출현 빈도 ══ -->
+  <div class="stat-panel" id="sp-freq" role="tabpanel" aria-labelledby="st-freq">
+
+    <div class="chart-controls">
+      <button class="chart-type-btn active" data-type="bar" aria-pressed="true">막대 차트</button>
+      <button class="chart-type-btn" data-type="horizontalBar" aria-pressed="false">가로 막대</button>
+    </div>
+
+    <div class="chart-wrapper" role="img" aria-label="번호별 출현 빈도 차트">
+      <canvas id="freqChart" aria-label="로또 번호 1부터 45까지 각각의 출현 빈도를 보여주는 막대 차트"></canvas>
+    </div>
+
+    <!-- 번호 히트맵 -->
+    <h2 class="sub-title">번호별 출현 횟수 히트맵</h2>
+    <div class="heatmap-grid" id="heatmapGrid" role="list" aria-label="번호별 출현 횟수 히트맵">
+      {% if freq_data %}
+        {% for item in freq_data %}
+        <div class="heatmap-cell ball-sm {{ item.number | number_color }}"
+             role="listitem"
+             aria-label="{{ item.number }}번: {{ item.count }}회 출현 ({{ item.pct }}%)">
+          <span class="heatmap-num">{{ item.number }}</span>
+          <span class="heatmap-count">{{ item.count }}</span>
+        </div>
+        {% endfor %}
+      {% else %}
+        <p class="no-data">데이터를 불러오는 중입니다. 배치를 실행해 주세요.</p>
+      {% endif %}
+    </div>
+
+    <!-- 상위/하위 번호 테이블 -->
+    {% if freq_data %}
+    <div class="freq-tables">
+      <div class="freq-table-wrap">
+        <h3 class="table-title">🔥 상위 10 (자주 등장)</h3>
+        <table class="data-table" aria-label="출현 빈도 상위 10개 번호">
+          <thead>
+            <tr><th scope="col">번호</th><th scope="col">출현 횟수</th><th scope="col">출현율</th></tr>
+          </thead>
+          <tbody>
+            {% for item in freq_data | sort(attribute='count', reverse=True) | list %}
+              {% if loop.index <= 10 %}
+              <tr>
+                <td><span class="ball ball-xs {{ item.number | number_color }}">{{ item.number }}</span></td>
+                <td>{{ item.count }}회</td>
+                <td>{{ item.pct }}%</td>
+              </tr>
+              {% endif %}
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div class="freq-table-wrap">
+        <h3 class="table-title">❄️ 하위 10 (드물게 등장)</h3>
+        <table class="data-table" aria-label="출현 빈도 하위 10개 번호">
+          <thead>
+            <tr><th scope="col">번호</th><th scope="col">출현 횟수</th><th scope="col">출현율</th></tr>
+          </thead>
+          <tbody>
+            {% for item in freq_data | sort(attribute='count') | list %}
+              {% if loop.index <= 10 %}
+              <tr>
+                <td><span class="ball ball-xs {{ item.number | number_color }}">{{ item.number }}</span></td>
+                <td>{{ item.count }}회</td>
+                <td>{{ item.pct }}%</td>
+              </tr>
+              {% endif %}
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- ══ 패널 2: 합산 구간 분포 ══ -->
+  <div class="stat-panel hidden" id="sp-sum" role="tabpanel" aria-labelledby="st-sum">
+    <div class="chart-wrapper" role="img" aria-label="합산 구간 분포 차트">
+      <canvas id="sumChart" aria-label="로또 번호 합산 구간별 당첨 빈도를 보여주는 막대 차트"></canvas>
+    </div>
+
+    {% if sum_dist %}
+    <h2 class="sub-title">구간별 당첨 빈도 상세</h2>
+    <table class="data-table" aria-label="합산 구간별 당첨 빈도 테이블">
+      <thead>
+        <tr>
+          <th scope="col">합산 구간</th>
+          <th scope="col">당첨 횟수</th>
+          <th scope="col">비율</th>
+          <th scope="col">분포</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in sum_dist %}
+        <tr>
+          <td>{{ item.range_start }} ~ {{ item.range_end }}</td>
+          <td>{{ item.count }}회</td>
+          <td>{{ item.pct }}%</td>
+          <td>
+            <div class="progress-bar" role="progressbar"
+                 aria-valuenow="{{ item.pct }}" aria-valuemin="0" aria-valuemax="100"
+                 aria-label="{{ item.pct }}%">
+              <div class="progress-fill" style="width: {{ item.pct }}%"></div>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="no-data">데이터를 불러오는 중입니다. 배치를 실행해 주세요.</p>
+    {% endif %}
+  </div>
+
+  <!-- ══ 패널 3: 최근 회차 번호 ══ -->
+  <div class="stat-panel hidden" id="sp-trend" role="tabpanel" aria-labelledby="st-trend">
+    {% if recent_rounds %}
+    <div class="rounds-table-wrap">
+      <table class="data-table rounds-table" aria-label="최근 당첨 번호 목록">
+        <thead>
+          <tr>
+            <th scope="col">회차</th>
+            <th scope="col">추첨일</th>
+            <th scope="col">당첨 번호</th>
+            <th scope="col">합산</th>
+            <th scope="col">1등 인원</th>
+            <th scope="col">1등 당첨금</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in recent_rounds %}
+          <tr>
+            <td><strong>{{ r.lt_epsd }}회</strong></td>
+            <td>{{ r.lt_rfl_ymd | format_date }}</td>
+            <td>
+              <div class="balls-inline" aria-label="당첨 번호: {{ r.tm1_wn_no }} {{ r.tm2_wn_no }} {{ r.tm3_wn_no }} {{ r.tm4_wn_no }} {{ r.tm5_wn_no }} {{ r.tm6_wn_no }} 보너스 {{ r.bns_wn_no }}">
+                {% for n in [r.tm1_wn_no, r.tm2_wn_no, r.tm3_wn_no, r.tm4_wn_no, r.tm5_wn_no, r.tm6_wn_no] %}
+                <span class="ball ball-xs {{ n | number_color }}" aria-hidden="true">{{ n }}</span>
+                {% endfor %}
+                <span class="ball-sep" aria-hidden="true">+</span>
+                <span class="ball ball-xs bonus {{ r.bns_wn_no | number_color }}" aria-label="보너스">{{ r.bns_wn_no }}</span>
+              </div>
+            </td>
+            <td>{{ r.num_sum }}</td>
+            <td>{{ r.rnk1_wn_nope | format_currency }}명</td>
+            <td>{{ r.rnk1_wn_amt | format_currency }}원</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="no-data">데이터를 불러오는 중입니다. 배치를 실행해 주세요.</p>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// 통계 데이터 (서버에서 전달)
+const freqData = {{ freq_data | tojson }};
+const sumDistData = {{ sum_dist | tojson }};
+
+// 탭 전환
+document.querySelectorAll('.stat-tab').forEach(function(tab) {
+  tab.addEventListener('click', function() {
+    document.querySelectorAll('.stat-tab').forEach(t => {
+      t.classList.remove('active');
+      t.setAttribute('aria-selected', 'false');
+    });
+    document.querySelectorAll('.stat-panel').forEach(p => p.classList.add('hidden'));
+
+    this.classList.add('active');
+    this.setAttribute('aria-selected', 'true');
+    const panel = document.getElementById(this.getAttribute('aria-controls'));
+    panel.classList.remove('hidden');
+  });
+});
+
+// 번호별 출현 빈도 차트
+if (freqData && freqData.length > 0) {
+  const labels = freqData.map(d => d.number);
+  const counts = freqData.map(d => d.count);
+  const colors = freqData.map(d => {
+    const n = d.number;
+    if (n <= 10) return '#F9A825';
+    if (n <= 20) return '#1565C0';
+    if (n <= 30) return '#C62828';
+    if (n <= 40) return '#546E7A';
+    return '#2E7D32';
+  });
+
+  const freqCtx = document.getElementById('freqChart').getContext('2d');
+  let freqChart = new Chart(freqCtx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: '출현 횟수',
+        data: counts,
+        backgroundColor: colors,
+        borderRadius: 4,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => `${ctx.raw}회 (${freqData[ctx.dataIndex].pct}%)`
+          }
+        }
+      },
+      scales: {
+        x: { grid: { display: false } },
+        y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } }
+      }
+    }
+  });
+
+  // 차트 타입 전환
+  document.querySelectorAll('.chart-type-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.chart-type-btn').forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-pressed', 'false');
+      });
+      this.classList.add('active');
+      this.setAttribute('aria-pressed', 'true');
+      const t = this.dataset.type;
+      freqChart.config.type = (t === 'horizontalBar') ? 'bar' : 'bar';
+      freqChart.options.indexAxis = (t === 'horizontalBar') ? 'y' : 'x';
+      freqChart.update();
+    });
+  });
+}
+
+// 합산 구간 분포 차트
+if (sumDistData && sumDistData.length > 0) {
+  const sumLabels = sumDistData.map(d => d.range_start + '~' + d.range_end);
+  const sumCounts = sumDistData.map(d => d.count);
+  const sumCtx = document.getElementById('sumChart').getContext('2d');
+  new Chart(sumCtx, {
+    type: 'bar',
+    data: {
+      labels: sumLabels,
+      datasets: [{
+        label: '당첨 횟수',
+        data: sumCounts,
+        backgroundColor: 'rgba(37, 99, 235, 0.75)',
+        borderColor: 'rgba(37, 99, 235, 1)',
+        borderWidth: 1,
+        borderRadius: 4,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => `${ctx.raw}회 (${sumDistData[ctx.dataIndex].pct}%)`
+          }
+        }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { maxRotation: 45 } },
+        y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } }
+      }
+    }
+  });
+}
+</script>
+{% endblock %}

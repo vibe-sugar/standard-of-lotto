@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+{% block title %}서비스 소개 - 로또의 정석{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <h1 class="page-title"><span aria-hidden="true">💡</span> 서비스 소개</h1>
+    <p class="page-desc">로또의 정석은 어떻게 만들어졌을까요?</p>
+  </div>
+</div>
+
+<div class="container section">
+
+  <!-- 개요 -->
+  <section class="about-section" aria-labelledby="about-overview">
+    <h2 id="about-overview" class="section-title">서비스 개요</h2>
+    <div class="about-grid">
+      <div class="about-text">
+        <p>
+          <strong>로또의 정석</strong>은 동행복권 공식 데이터를 기반으로 역대 로또 6/45 당첨 번호를 분석하여,
+          통계적으로 의미 있는 번호 추천을 제공하는 서비스입니다.
+        </p>
+        <p>
+          단순한 무작위 추천을 넘어, 역대 당첨 번호의 <strong>합산 구간 분포</strong>와
+          <strong>번호별 출현 빈도</strong>를 시각화하고, 사용자가 원하는 조건에 맞는 번호를 추천받을 수 있습니다.
+        </p>
+        <p>
+          모든 추천 번호는 DB에 저장되며, 실제 당첨이 발생하면 메인 화면에 즉시 공개하여 <strong>완전한 투명성</strong>을 보장합니다.
+        </p>
+      </div>
+      <div class="about-stats-mini" aria-label="서비스 주요 수치">
+        <div class="mini-stat">
+          <span class="mini-stat-icon" aria-hidden="true">🗓️</span>
+          <strong>2002년~현재</strong>
+          <span>데이터 커버리지</span>
+        </div>
+        <div class="mini-stat">
+          <span class="mini-stat-icon" aria-hidden="true">🔄</span>
+          <strong>매주 자동 업데이트</strong>
+          <span>배치 프로그램 운영</span>
+        </div>
+        <div class="mini-stat">
+          <span class="mini-stat-icon" aria-hidden="true">🔓</span>
+          <strong>100% 투명 공개</strong>
+          <span>추천 번호 당첨 이력</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 주요 기능 -->
+  <section class="about-section" aria-labelledby="about-features">
+    <h2 id="about-features" class="section-title">주요 기능</h2>
+    <div class="feature-list" role="list">
+
+      <article class="feature-item" role="listitem">
+        <div class="feature-num" aria-hidden="true">01</div>
+        <div class="feature-content">
+          <h3>완전 무작위 번호 추천</h3>
+          <p>1~45 범위의 숫자 중 편향 없이 완전 무작위로 6개 번호를 선택합니다. 한 번에 최대 5세트까지 동시에 생성할 수 있습니다.</p>
+        </div>
+      </article>
+
+      <article class="feature-item" role="listitem">
+        <div class="feature-num" aria-hidden="true">02</div>
+        <div class="feature-content">
+          <h3>합산 구간 기반 번호 추천</h3>
+          <p>6개 번호의 합계가 특정 구간(예: 121~130)에 들어오는 번호 조합을 추천합니다.
+             역대 데이터 분석 결과 당첨 번호의 합산은 특정 구간에 집중되는 경향이 있습니다.</p>
+          <div class="sum-range-preview" aria-label="합산 구간 버튼 예시">
+            {% for sr in sum_ranges %}
+            <span class="btn-range-preview">{{ sr.label }}</span>
+            {% endfor %}
+          </div>
+        </div>
+      </article>
+
+      <article class="feature-item" role="listitem">
+        <div class="feature-num" aria-hidden="true">03</div>
+        <div class="feature-content">
+          <h3>통계 시각화</h3>
+          <p>번호별 출현 빈도, 합산 구간 분포 등 다양한 통계 데이터를 차트와 히트맵으로 시각화합니다.</p>
+        </div>
+      </article>
+
+      <article class="feature-item" role="listitem">
+        <div class="feature-num" aria-hidden="true">04</div>
+        <div class="feature-content">
+          <h3>투명한 당첨 이력 공개</h3>
+          <p>이 사이트에서 생성된 모든 추천 번호는 DB에 저장됩니다. 실제 당첨(1~3등)이 발생하면 메인 화면에 즉시 공개합니다.</p>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- 번호 색상 안내 -->
+  <section class="about-section" aria-labelledby="about-colors">
+    <h2 id="about-colors" class="section-title">로또 번호 색상 안내</h2>
+    <p>로또 6/45의 공식 번호 색상 체계입니다.</p>
+    <div class="color-guide" role="list" aria-label="번호 색상 안내">
+      <div class="color-item" role="listitem">
+        <span class="ball ball-md yellow" aria-hidden="true">5</span>
+        <span><strong>1~10번</strong> — 노란색</span>
+      </div>
+      <div class="color-item" role="listitem">
+        <span class="ball ball-md blue" aria-hidden="true">15</span>
+        <span><strong>11~20번</strong> — 파란색</span>
+      </div>
+      <div class="color-item" role="listitem">
+        <span class="ball ball-md red" aria-hidden="true">25</span>
+        <span><strong>21~30번</strong> — 빨간색</span>
+      </div>
+      <div class="color-item" role="listitem">
+        <span class="ball ball-md gray" aria-hidden="true">35</span>
+        <span><strong>31~40번</strong> — 회색</span>
+      </div>
+      <div class="color-item" role="listitem">
+        <span class="ball ball-md green" aria-hidden="true">43</span>
+        <span><strong>41~45번</strong> — 초록색</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 기술 스택 -->
+  <section class="about-section" aria-labelledby="about-tech">
+    <h2 id="about-tech" class="section-title">기술 스택</h2>
+    <div class="tech-grid" role="list">
+      <div class="tech-item" role="listitem">
+        <span class="tech-icon" aria-hidden="true">🐍</span>
+        <strong>Python 3.12</strong>
+        <span>백엔드 / 배치</span>
+      </div>
+      <div class="tech-item" role="listitem">
+        <span class="tech-icon" aria-hidden="true">🌶️</span>
+        <strong>Flask</strong>
+        <span>웹 프레임워크</span>
+      </div>
+      <div class="tech-item" role="listitem">
+        <span class="tech-icon" aria-hidden="true">🗄️</span>
+        <strong>MySQL</strong>
+        <span>데이터베이스</span>
+      </div>
+      <div class="tech-item" role="listitem">
+        <span class="tech-icon" aria-hidden="true">📊</span>
+        <strong>Chart.js</strong>
+        <span>데이터 시각화</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 배치 실행 안내 -->
+  <section class="about-section" aria-labelledby="about-batch">
+    <h2 id="about-batch" class="section-title">배치 프로그램 실행 방법</h2>
+    <div class="info-box">
+      <h3>수동 실행</h3>
+      <pre class="code-block" aria-label="배치 수동 실행 명령어"><code>cd /path/to/webapp
+python batch/fetch_lotto.py</code></pre>
+
+      <h3>자동 실행 (Linux cron)</h3>
+      <pre class="code-block" aria-label="cron 자동 실행 설정"><code># 매주 일요일 오전 9시에 자동 실행
+0 9 * * 0 cd /path/to/webapp && python batch/fetch_lotto.py</code></pre>
+
+      <h3>자동 실행 (Windows 작업 스케줄러)</h3>
+      <pre class="code-block" aria-label="Windows 배치 파일"><code>cd C:\path\to\webapp
+python batch\fetch_lotto.py</code></pre>
+    </div>
+  </section>
+
+  <!-- 주의사항 -->
+  <section class="about-section notice-section" aria-labelledby="about-notice">
+    <h2 id="about-notice" class="section-title">⚠️ 주의사항</h2>
+    <ul class="notice-list" role="list">
+      <li>본 서비스는 로또 당첨을 보장하지 않습니다.</li>
+      <li>모든 번호 추천은 통계적 분석에 기반하며, 실제 당첨 결과와 무관합니다.</li>
+      <li>로또는 사행행위입니다. 과도한 구매를 삼가시기 바랍니다.</li>
+      <li>미성년자의 로또 구매는 법적으로 금지되어 있습니다.</li>
+      <li>당첨 데이터는 동행복권 공식 API를 통해 수집됩니다.</li>
+    </ul>
+  </section>
+
+</div>
+{% endblock %}

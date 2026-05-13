@@ -1,0 +1,78 @@
+# 로또의 정석 - 개발 환경 정보
+
+## Python 버전
+- Python 3.12.x
+
+## 가상환경 설정
+
+### Linux / macOS
+```bash
+python3 -m venv venv
+source venv/bin/activate
+pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+### Windows
+```cmd
+python -m venv venv
+venv\Scripts\activate
+pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+## 사용 외부 모듈 목록
+
+| 패키지 | 버전 | 용도 |
+|--------|------|------|
+| Flask | 3.0.3 | 웹 프레임워크 |
+| Flask-Cors | 4.0.1 | CORS 처리 |
+| PyMySQL | 1.1.1 | MySQL 드라이버 |
+| requests | 2.32.3 | 로또 API HTTP 요청 |
+| python-dotenv | 1.0.1 | .env 환경변수 로드 |
+| cryptography | 43.0.3 | PyMySQL SSL 지원 |
+
+## 모듈 설치 명령어
+```bash
+pip install Flask==3.0.3 Flask-Cors==4.0.1 PyMySQL==1.1.1 requests==2.32.3 python-dotenv==1.0.1 cryptography==43.0.3
+```
+
+또는 requirements.txt 일괄 설치:
+```bash
+pip install -r requirements.txt
+```
+
+## MySQL 설치 (Ubuntu/Debian)
+```bash
+sudo apt update
+sudo apt install mysql-server -y
+sudo systemctl start mysql
+sudo systemctl enable mysql
+sudo mysql_secure_installation
+```
+
+## MySQL 설치 (Windows)
+- https://dev.mysql.com/downloads/installer/ 에서 MySQL Installer 다운로드
+- MySQL Server 8.0 설치 후 root 비밀번호 설정
+
+## 서버 실행
+```bash
+# 포트: 15001
+python app.py
+```
+
+## 배치 실행
+```bash
+python batch/fetch_lotto.py
+```
+
+## 환경변수 (.env 예시)
+```
+FLASK_ENV=development
+SECRET_KEY=change-this-to-secure-random-string
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_USER=lotto_user
+DB_PASSWORD=lotto_pass
+DB_NAME=lotto_db
+```

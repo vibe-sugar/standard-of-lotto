@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+{% block title %}당첨 번호 조회 - 로또의 정석{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <h1 class="page-title"><span aria-hidden="true">🎰</span> 역대 당첨 번호</h1>
+    <p class="page-desc">총 {{ "{:,}".format(total_count) }}회차의 당첨 번호를 확인하세요.</p>
+  </div>
+</div>
+
+<div class="container section">
+
+  <!-- 검색 필터 -->
+  <div class="history-filter" role="search" aria-label="회차 검색">
+    <input type="number" id="searchEpsd" class="form-input" placeholder="회차 검색 (예: 1150)"
+           min="1" aria-label="검색할 회차 번호 입력" />
+    <button class="btn btn-primary" id="searchBtn" aria-label="회차 검색 실행">
+      <span aria-hidden="true">🔍</span> 검색
+    </button>
+  </div>
+
+  <!-- 당첨 번호 테이블 -->
+  {% if rounds %}
+  <div class="table-responsive" role="region" aria-label="역대 당첨 번호 표">
+    <table class="data-table history-table" aria-label="역대 로또 당첨 번호 목록">
+      <thead>
+        <tr>
+          <th scope="col">회차</th>
+          <th scope="col">추첨일</th>
+          <th scope="col">당첨 번호</th>
+          <th scope="col">합산</th>
+          <th scope="col">1등 인원</th>
+          <th scope="col">1등 당첨금</th>
+          <th scope="col">2등</th>
+          <th scope="col">3등</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rounds %}
+        <tr>
+          <td><strong class="epsd-num">{{ r.lt_epsd }}회</strong></td>
+          <td class="date-cell">{{ r.lt_rfl_ymd | format_date }}</td>
+          <td>
+            <div class="balls-inline"
+                 aria-label="{{ r.lt_epsd }}회 당첨 번호: {{ r.tm1_wn_no }} {{ r.tm2_wn_no }} {{ r.tm3_wn_no }} {{ r.tm4_wn_no }} {{ r.tm5_wn_no }} {{ r.tm6_wn_no }} 보너스 {{ r.bns_wn_no }}">
+              {% for n in [r.tm1_wn_no, r.tm2_wn_no, r.tm3_wn_no,
+                           r.tm4_wn_no, r.tm5_wn_no, r.tm6_wn_no] %}
+              <span class="ball ball-xs {{ n | number_color }}" aria-hidden="true">{{ n }}</span>
+              {% endfor %}
+              <span class="ball-sep" aria-hidden="true">+</span>
+              <span class="ball ball-xs bonus {{ r.bns_wn_no | number_color }}"
+                    aria-label="보너스 {{ r.bns_wn_no }}">{{ r.bns_wn_no }}</span>
+            </div>
+          </td>
+          <td class="sum-cell">{{ r.num_sum }}</td>
+          <td>{{ r.rnk1_wn_nope | format_currency }}명</td>
+          <td class="amount-cell">{{ r.rnk1_wn_amt | format_currency }}원</td>
+          <td>{{ r.rnk2_wn_nope | format_currency }}명</td>
+          <td>{{ r.rnk3_wn_nope | format_currency }}명</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 페이지네이션 -->
+  {% if total_pages > 1 %}
+  <nav class="pagination" aria-label="페이지 탐색">
+    <ul class="page-list" role="list">
+      <!-- 처음 -->
+      {% if page > 1 %}
+      <li>
+        <a href="{{ url_for('history', page=1) }}" class="page-btn" aria-label="첫 페이지">«</a>
+      </li>
+      <li>
+        <a href="{{ url_for('history', page=page-1) }}" class="page-btn" aria-label="이전 페이지">‹</a>
+      </li>
+      {% endif %}
+
+      <!-- 페이지 번호 -->
+      {% set start_page = [1, page - 2] | max %}
+      {% set end_page   = [total_pages, page + 2] | min %}
+      {% for p in range(start_page, end_page + 1) %}
+      <li>
+        <a href="{{ url_for('history', page=p) }}"
+           class="page-btn {% if p == page %}active{% endif %}"
+           {% if p == page %}aria-current="page"{% endif %}
+           aria-label="{{ p }}페이지">{{ p }}</a>
+      </li>
+      {% endfor %}
+
+      <!-- 마지막 -->
+      {% if page < total_pages %}
+      <li>
+        <a href="{{ url_for('history', page=page+1) }}" class="page-btn" aria-label="다음 페이지">›</a>
+      </li>
+      <li>
+        <a href="{{ url_for('history', page=total_pages) }}" class="page-btn" aria-label="마지막 페이지">»</a>
+      </li>
+      {% endif %}
+    </ul>
+    <p class="page-info" aria-live="polite">
+      {{ page }} / {{ total_pages }} 페이지 (총 {{ "{:,}".format(total_count) }}개)
+    </p>
+  </nav>
+  {% endif %}
+
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-icon" aria-hidden="true">📭</div>
+    <h2>데이터가 없습니다</h2>
+    <p>배치 프로그램을 실행하여 로또 당첨 데이터를 수집해 주세요.</p>
+    <a href="{{ url_for('about') }}" class="btn btn-outline">배치 실행 방법 보기</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  // 회차 번호 검색 (클라이언트 사이드 필터)
+  document.getElementById('searchBtn').addEventListener('click', function () {
+    const val = document.getElementById('searchEpsd').value.trim();
+    if (!val) return;
+    const epsd = parseInt(val, 10);
+    if (isNaN(epsd) || epsd < 1) {
+      alert('올바른 회차 번호를 입력해 주세요.');
+      return;
+    }
+    // 서버 사이드 검색: 해당 회차가 포함된 페이지로 이동
+    // 간단 구현: API로 검색 후 하이라이트 처리 (단순히 행 검색)
+    const rows = document.querySelectorAll('.history-table tbody tr');
+    let found = false;
+    rows.forEach(function(row) {
+      const text = row.querySelector('.epsd-num');
+      if (text && text.textContent.replace(/[^0-9]/g, '') === String(epsd)) {
+        row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        row.classList.add('highlight-row');
+        setTimeout(() => row.classList.remove('highlight-row'), 3000);
+        found = true;
+      }
+    });
+    if (!found) {
+      alert(`${epsd}회차 데이터가 현재 페이지에 없습니다.\n다른 페이지를 확인해 주세요.`);
+    }
+  });
+
+  // Enter 키로 검색
+  document.getElementById('searchEpsd').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') document.getElementById('searchBtn').click();
+  });
+</script>
+{% endblock %}

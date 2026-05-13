@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% block title %}번호 추천 - 로또의 정석{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <h1 class="page-title"><span aria-hidden="true">🎲</span> 번호 추천</h1>
+    <p class="page-desc">원하는 방식을 선택하고 행운의 번호를 추천받으세요.</p>
+  </div>
+</div>
+
+<div class="container section">
+  <div class="recommend-layout">
+
+    <!-- ══ 왼쪽: 추천 방식 선택 ══ -->
+    <aside class="recommend-sidebar" aria-label="추천 방식 선택">
+
+      <!-- 탭 선택 -->
+      <div class="tab-group" role="tablist" aria-label="번호 추천 방식">
+        <button class="tab-btn active" role="tab" id="tab-random"
+                aria-selected="true" aria-controls="panel-random">
+          <span aria-hidden="true">🎲</span> 완전 무작위
+        </button>
+        <button class="tab-btn" role="tab" id="tab-sumrange"
+                aria-selected="false" aria-controls="panel-sumrange">
+          <span aria-hidden="true">🎯</span> 합산 구간 선택
+        </button>
+      </div>
+
+      <!-- 무작위 패널 -->
+      <div class="tab-panel" id="panel-random" role="tabpanel" aria-labelledby="tab-random">
+        <div class="panel-desc">
+          <p>1~45 사이의 숫자 중 완전 무작위로 6개를 뽑아드립니다.</p>
+        </div>
+        <div class="form-group">
+          <label for="randomCount" class="form-label">추천 세트 수</label>
+          <div class="count-selector" role="group" aria-labelledby="randomCount">
+            {% for i in range(1, 6) %}
+            <button class="count-btn {% if i == 1 %}active{% endif %}"
+                    data-count="{{ i }}" aria-pressed="{% if i == 1 %}true{% else %}false{% endif %}"
+                    aria-label="{{ i }}세트 선택">{{ i }}세트</button>
+            {% endfor %}
+          </div>
+          <input type="hidden" id="randomCount" value="1" />
+        </div>
+        <button class="btn btn-primary btn-full btn-xl" id="randomBtn"
+                aria-label="무작위 번호 추천 시작">
+          <span aria-hidden="true">✨</span> 번호 추천받기
+        </button>
+      </div>
+
+      <!-- 합산 구간 패널 -->
+      <div class="tab-panel hidden" id="panel-sumrange" role="tabpanel" aria-labelledby="tab-sumrange">
+        <div class="panel-desc">
+          <p>역대 당첨 번호 합산 분포를 기반으로 선택한 구간에 맞는 번호를 추천합니다.</p>
+        </div>
+
+        <div class="form-group">
+          <fieldset>
+            <legend class="form-label">합산 구간 선택</legend>
+            <div class="sum-range-grid" role="group" aria-label="합산 구간 버튼">
+              {% for sr in sum_ranges %}
+              <button class="btn btn-range-lg {% if loop.index == 4 %}selected{% endif %}"
+                      data-min="{{ sr.min }}" data-max="{{ sr.max }}"
+                      aria-pressed="{% if loop.index == 4 %}true{% else %}false{% endif %}"
+                      aria-label="합산 {{ sr.label }}">
+                {{ sr.label }}
+              </button>
+              {% endfor %}
+            </div>
+          </fieldset>
+        </div>
+
+        <div class="selected-range-info" aria-live="polite">
+          <span class="range-label">선택 구간:</span>
+          <span id="selectedRangeText" class="range-value">121 ~ 130</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">추천 세트 수</label>
+          <div class="count-selector" role="group">
+            {% for i in range(1, 6) %}
+            <button class="count-btn-sr {% if i == 1 %}active{% endif %}"
+                    data-count="{{ i }}" aria-pressed="{% if i == 1 %}true{% else %}false{% endif %}"
+                    aria-label="{{ i }}세트 선택">{{ i }}세트</button>
+            {% endfor %}
+          </div>
+          <input type="hidden" id="sumCount" value="1" />
+        </div>
+
+        <input type="hidden" id="selectedMin" value="121" />
+        <input type="hidden" id="selectedMax" value="130" />
+
+        <button class="btn btn-primary btn-full btn-xl" id="sumRangeBtn"
+                aria-label="합산 구간 기반 번호 추천 시작">
+          <span aria-hidden="true">✨</span> 번호 추천받기
+        </button>
+      </div>
+    </aside>
+
+    <!-- ══ 오른쪽: 결과 영역 ══ -->
+    <section class="recommend-result" aria-label="추천 번호 결과">
+      <div id="resultArea" class="result-area result-area-large" aria-live="polite">
+        <div class="result-placeholder" id="resultPlaceholder">
+          <div class="placeholder-icon" aria-hidden="true">🎱</div>
+          <p>왼쪽에서 추천 방식을 선택하고<br><strong>번호 추천받기</strong> 버튼을 누르세요.</p>
+        </div>
+        <div id="resultContent" hidden></div>
+      </div>
+
+      <!-- 저장된 번호 목록 -->
+      <div class="saved-section" id="savedSection" hidden>
+        <div class="saved-header">
+          <h2 class="saved-title"><span aria-hidden="true">📋</span> 이번 세션 추천 번호</h2>
+          <button class="btn btn-sm btn-outline" id="clearSavedBtn" aria-label="추천 번호 목록 초기화">
+            초기화
+          </button>
+        </div>
+        <div id="savedList" class="saved-list" aria-label="저장된 추천 번호 목록" role="list"></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ══ 합산 구간 안내 ══ -->
+  <div class="info-box section-sm">
+    <h2 class="info-title"><span aria-hidden="true">ℹ️</span> 합산 구간이란?</h2>
+    <p>로또 6개 당첨 번호를 모두 더한 값의 범위입니다.<br>
+       역대 데이터 분석 결과, 번호 합산이 <strong>100~200</strong> 구간에서 당첨이 집중되는 경향이 있습니다.<br>
+       원하는 합산 구간을 선택하면 해당 범위 안에 드는 6개 번호를 추천해 드립니다.</p>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/recommend.js') }}"></script>
+<script>
+  initRecommendPage();
+</script>
+{% endblock %}
