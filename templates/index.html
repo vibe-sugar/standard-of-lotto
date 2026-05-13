@@ -2,235 +2,608 @@
 {% block title %}홈 - 로또의 정석{% endblock %}
 
 {% block content %}
-<!-- ══════════ HERO BANNER ══════════ -->
-<section class="hero" aria-labelledby="hero-heading">
-  <div class="hero-bg" aria-hidden="true"></div>
-  <div class="container hero-inner">
-    <div class="hero-text">
-      <p class="hero-badge">🏆 투명한 당첨 이력 공개</p>
-      <h1 id="hero-heading" class="hero-title">
-        데이터가 말하는<br><span class="highlight">스마트 로또</span>
-      </h1>
-      <p class="hero-sub">
-        역대 {{ "{:,}".format(latest|length > 0 and latest[0].lt_epsd or 0) }}회차 데이터 분석 기반으로<br>
-        가장 합리적인 번호를 추천해 드립니다.
-      </p>
-      <div class="hero-actions">
-        <a href="{{ url_for('recommend') }}" class="btn btn-primary btn-lg">
-          <span aria-hidden="true">🎲</span> 번호 추천 받기
-        </a>
-        <a href="{{ url_for('statistics') }}" class="btn btn-outline btn-lg">
-          <span aria-hidden="true">📊</span> 통계 보기
-        </a>
-      </div>
-    </div>
-    <div class="hero-visual" aria-hidden="true">
-      <div class="ball-showcase">
-        <div class="ball yellow anim-delay-1">7</div>
-        <div class="ball blue anim-delay-2">14</div>
-        <div class="ball red anim-delay-3">23</div>
-        <div class="ball gray anim-delay-4">35</div>
-        <div class="ball green anim-delay-5">42</div>
-        <div class="ball blue anim-delay-6">11</div>
-      </div>
-    </div>
+
+<!-- ══════════════════════════════════════════════
+     SECTION 1 : HERO — "데이터로 예측하는 로또의 정석"
+══════════════════════════════════════════════════ -->
+<section class="home-hero" aria-labelledby="hero-heading">
+
+  <!-- 배경 장식 요소 -->
+  <div class="hero-deco" aria-hidden="true">
+    <div class="deco-circle deco-c1"></div>
+    <div class="deco-circle deco-c2"></div>
+    <div class="deco-circle deco-c3"></div>
+    <div class="deco-ring  deco-r1"></div>
+    <div class="deco-ring  deco-r2"></div>
+    <div class="deco-dots"  id="decoDotsCanvas"></div>
+    <!-- 부유하는 미니 볼 -->
+    <span class="float-ball fb-yellow" style="top:18%;left:8%">7</span>
+    <span class="float-ball fb-blue"   style="top:62%;left:4%">14</span>
+    <span class="float-ball fb-red"    style="top:30%;right:6%">23</span>
+    <span class="float-ball fb-gray"   style="top:72%;right:9%">35</span>
+    <span class="float-ball fb-green"  style="top:50%;right:18%">42</span>
   </div>
-</section>
 
-<!-- ══════════ 투명성 배너 (당첨자 없을 때) ══════════ -->
-{% set total_winners = win_stats[1] + win_stats[2] + win_stats[3] %}
-{% if total_winners == 0 %}
-<section class="transparency-banner" aria-label="첫 당첨 도전 안내">
-  <div class="container">
-    <div class="banner-content">
-      <span class="banner-icon" aria-hidden="true">✨</span>
-      <div class="banner-text">
-        <strong>아직 첫 번째 행운의 주인공이 나타나지 않았습니다!</strong>
-        <span>지금 바로 로또의 정석에서 번호를 추천받고 역사적인 첫 당첨자가 되어보세요.</span>
-      </div>
-      <a href="{{ url_for('recommend') }}" class="btn btn-accent btn-sm">지금 도전하기 →</a>
-    </div>
-  </div>
-</section>
-{% endif %}
+  <div class="container hero-body">
+    <!-- 메인 카피 -->
+    <p class="hero-eyebrow" aria-hidden="true">LOTTO JEONGSEOK</p>
+    <h1 id="hero-heading" class="hero-headline">
+      데이터로 예측하는<br>
+      <em>로또의 정석</em>
+    </h1>
+    <p class="hero-caption">
+      역대 전 회차 당첨 데이터를 분석해<br class="br-mobile">
+      가장 합리적인 번호를 추천해 드립니다.
+    </p>
 
-<!-- ══════════ 누적 당첨 통계 ══════════ -->
-<section class="win-stats-section section" aria-labelledby="win-stats-heading">
-  <div class="container">
-    <h2 id="win-stats-heading" class="section-title">
-      <span aria-hidden="true">🏅</span> 로또의 정석 누적 당첨 현황
-    </h2>
-    <p class="section-desc">이 사이트에서 추천된 번호로 실제 당첨된 사례를 투명하게 공개합니다.</p>
+    <!-- 메인 CTA 버튼 2개 -->
+    <div class="hero-cta" role="group" aria-label="주요 메뉴">
+      <a href="{{ url_for('recommend') }}" class="cta-btn cta-primary"
+         aria-label="로또 번호 추천 받기 페이지로 이동">
+        <span class="cta-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M8 12l3 3 5-5"/>
+          </svg>
+        </span>
+        <span class="cta-label">
+          <strong>로또 번호 받기</strong>
+          <small>무작위·합산구간 추천</small>
+        </span>
+        <span class="cta-arrow" aria-hidden="true">→</span>
+      </a>
 
-    <div class="stats-grid" role="list">
-      <article class="stat-card rank-1" role="listitem">
-        <div class="stat-rank" aria-label="1등">1등</div>
-        <div class="stat-count" aria-live="polite">
-          <span class="count-number">{{ win_stats[1] }}</span>
-          <span class="count-unit">명</span>
-        </div>
-        <div class="stat-label">당첨자 수</div>
-        {% if win_stats[1] == 0 %}
-        <div class="stat-empty">첫 주인공을 기다립니다</div>
-        {% endif %}
-      </article>
-
-      <article class="stat-card rank-2" role="listitem">
-        <div class="stat-rank" aria-label="2등">2등</div>
-        <div class="stat-count" aria-live="polite">
-          <span class="count-number">{{ win_stats[2] }}</span>
-          <span class="count-unit">명</span>
-        </div>
-        <div class="stat-label">당첨자 수</div>
-        {% if win_stats[2] == 0 %}
-        <div class="stat-empty">첫 주인공을 기다립니다</div>
-        {% endif %}
-      </article>
-
-      <article class="stat-card rank-3" role="listitem">
-        <div class="stat-rank" aria-label="3등">3등</div>
-        <div class="stat-count" aria-live="polite">
-          <span class="count-number">{{ win_stats[3] }}</span>
-          <span class="count-unit">명</span>
-        </div>
-        <div class="stat-label">당첨자 수</div>
-        {% if win_stats[3] == 0 %}
-        <div class="stat-empty">첫 주인공을 기다립니다</div>
-        {% endif %}
-      </article>
-
-      <article class="stat-card total" role="listitem">
-        <div class="stat-rank" aria-label="총 추천 건수">추천 건수</div>
-        <div class="stat-count" aria-live="polite">
-          <span class="count-number">{{ "{:,}".format(total_recommendations) }}</span>
-          <span class="count-unit">건</span>
-        </div>
-        <div class="stat-label">누적 번호 생성</div>
-      </article>
-    </div>
-  </div>
-</section>
-
-<!-- ══════════ 최신 당첨 번호 ══════════ -->
-{% if latest %}
-<section class="latest-section section" aria-labelledby="latest-heading">
-  <div class="container">
-    <div class="section-header-row">
-      <h2 id="latest-heading" class="section-title">
-        <span aria-hidden="true">🎰</span> 최근 당첨 번호
-      </h2>
-      <a href="{{ url_for('history') }}" class="link-more" aria-label="전체 당첨 번호 보기">
-        전체 보기 →
+      <a href="{{ url_for('statistics') }}" class="cta-btn cta-secondary"
+         aria-label="통계 분석 페이지로 이동">
+        <span class="cta-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+          </svg>
+        </span>
+        <span class="cta-label">
+          <strong>통계 분석 보기</strong>
+          <small>번호 빈도·합산 분포</small>
+        </span>
+        <span class="cta-arrow" aria-hidden="true">→</span>
       </a>
     </div>
+  </div>
 
-    <div class="rounds-list" role="list">
-      {% for r in latest %}
-      <article class="round-card" role="listitem">
-        <div class="round-meta">
-          <span class="round-num">제 {{ r.lt_epsd }}회</span>
-          <span class="round-date">{{ r.lt_rfl_ymd | format_date }}</span>
-        </div>
-        <div class="round-balls" aria-label="{{ r.lt_epsd }}회 당첨 번호: {{ r.tm1_wn_no }}, {{ r.tm2_wn_no }}, {{ r.tm3_wn_no }}, {{ r.tm4_wn_no }}, {{ r.tm5_wn_no }}, {{ r.tm6_wn_no }}, 보너스: {{ r.bns_wn_no }}">
-          {% for n in [r.tm1_wn_no, r.tm2_wn_no, r.tm3_wn_no, r.tm4_wn_no, r.tm5_wn_no, r.tm6_wn_no] %}
-          <span class="ball ball-sm {{ n | number_color }}" aria-hidden="true">{{ n }}</span>
-          {% endfor %}
-          <span class="ball-separator" aria-hidden="true">+</span>
-          <span class="ball ball-sm bonus {{ r.bns_wn_no | number_color }}" aria-label="보너스 번호 {{ r.bns_wn_no }}">{{ r.bns_wn_no }}</span>
-        </div>
-        <div class="round-info">
-          <span class="info-badge">합계 <strong>{{ r.num_sum }}</strong></span>
+  <!-- 스크롤 힌트 -->
+  <div class="scroll-hint" aria-hidden="true">
+    <span class="scroll-hint-line"></span>
+    <span class="scroll-hint-text">scroll</span>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════
+     SECTION 2 : 최신 당첨 번호
+══════════════════════════════════════════════════ -->
+<section class="home-section latest-win-section" aria-labelledby="latest-heading">
+  <div class="container">
+
+    <div class="section-label-row">
+      <span class="section-chip" aria-hidden="true">최신 결과</span>
+    </div>
+    <h2 id="latest-heading" class="home-section-title">최신 로또 당첨 번호</h2>
+    <p class="home-section-desc">
+      가장 최근에 발표된 당첨 번호와 1인 1등 당첨금을 확인하세요.
+    </p>
+
+    {% if latest and latest|length > 0 %}
+    {% set r = latest[0] %}
+    <div class="latest-win-card" aria-label="{{ r.lt_epsd }}회 최신 당첨 번호">
+
+      <!-- 회차 + 날짜 -->
+      <div class="lw-meta">
+        <span class="lw-round">제 <strong>{{ r.lt_epsd }}</strong>회</span>
+        <span class="lw-date">{{ r.lt_rfl_ymd | format_date }}</span>
+      </div>
+
+      <!-- 볼 -->
+      <div class="lw-balls"
+           aria-label="당첨 번호 {{ r.tm1_wn_no }} {{ r.tm2_wn_no }} {{ r.tm3_wn_no }} {{ r.tm4_wn_no }} {{ r.tm5_wn_no }} {{ r.tm6_wn_no }} 보너스 {{ r.bns_wn_no }}">
+        {% for n in [r.tm1_wn_no, r.tm2_wn_no, r.tm3_wn_no, r.tm4_wn_no, r.tm5_wn_no, r.tm6_wn_no] %}
+        <span class="lw-ball {{ n | number_color }}" aria-hidden="true">{{ n }}</span>
+        {% endfor %}
+        <span class="lw-plus" aria-hidden="true">+</span>
+        <span class="lw-ball bonus {{ r.bns_wn_no | number_color }}"
+              aria-label="보너스 번호 {{ r.bns_wn_no }}">{{ r.bns_wn_no }}</span>
+      </div>
+
+      <!-- 당첨금 + 배지 -->
+      <div class="lw-prize">
+        <div class="lw-prize-block">
+          <span class="lw-prize-label">1인 1등 당첨금</span>
+          <span class="lw-prize-amount">
+            {{ r.rnk1_wn_amt | format_currency }}<em>원</em>
+          </span>
           {% if r.rnk1_wn_nope %}
-          <span class="info-badge">1등 {{ r.rnk1_wn_nope }}명</span>
+          <span class="lw-prize-sub">총 {{ r.rnk1_wn_nope }}명 당첨</span>
           {% endif %}
         </div>
-      </article>
+        <div class="lw-prize-badges">
+          <span class="lw-badge">합계 <b>{{ r.num_sum }}</b></span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 최근 5회차 서브 목록 -->
+    {% if latest|length > 1 %}
+    <div class="recent-list" role="list" aria-label="최근 5회차 당첨 번호">
+      {% for r2 in latest[1:] %}
+      <div class="recent-item" role="listitem"
+           aria-label="{{ r2.lt_epsd }}회 {{ r2.tm1_wn_no }} {{ r2.tm2_wn_no }} {{ r2.tm3_wn_no }} {{ r2.tm4_wn_no }} {{ r2.tm5_wn_no }} {{ r2.tm6_wn_no }}">
+        <span class="ri-round">{{ r2.lt_epsd }}회</span>
+        <div class="ri-balls" aria-hidden="true">
+          {% for n in [r2.tm1_wn_no, r2.tm2_wn_no, r2.tm3_wn_no, r2.tm4_wn_no, r2.tm5_wn_no, r2.tm6_wn_no] %}
+          <span class="ri-ball {{ n | number_color }}">{{ n }}</span>
+          {% endfor %}
+          <span class="ri-sep">+</span>
+          <span class="ri-ball bonus {{ r2.bns_wn_no | number_color }}">{{ r2.bns_wn_no }}</span>
+        </div>
+        <span class="ri-date">{{ r2.lt_rfl_ymd | format_date }}</span>
+      </div>
       {% endfor %}
     </div>
+    {% endif %}
+
+    {% else %}
+    <!-- 데이터 없을 때 -->
+    <div class="no-data-card">
+      <span aria-hidden="true">📭</span>
+      <p>데이터를 불러오는 중입니다.<br>배치 프로그램을 실행해 최신 데이터를 수집해 주세요.</p>
+      <a href="{{ url_for('about') }}" class="btn btn-outline btn-sm">배치 실행 방법 →</a>
+    </div>
+    {% endif %}
+
+    <div class="section-more-row">
+      <a href="{{ url_for('history') }}" class="section-more-link"
+         aria-label="역대 전체 당첨 번호 보기">전체 당첨 번호 보기 →</a>
+    </div>
   </div>
 </section>
-{% endif %}
 
-<!-- ══════════ 빠른 추천 (합산 구간) ══════════ -->
-<section class="quick-pick-section section" aria-labelledby="quick-pick-heading">
+
+<!-- ══════════════════════════════════════════════
+     SECTION 3 : 번호 추천 CTA
+══════════════════════════════════════════════════ -->
+<section class="home-section recommend-cta-section" aria-labelledby="rec-cta-heading">
   <div class="container">
-    <h2 id="quick-pick-heading" class="section-title">
-      <span aria-hidden="true">⚡</span> 빠른 번호 추천
-    </h2>
-    <p class="section-desc">합산 구간을 선택하거나 완전 무작위로 번호를 추천받으세요.</p>
 
-    <div class="quick-actions">
-      <button class="btn btn-primary btn-lg" id="homeRandomBtn"
-              aria-label="완전 무작위 번호 1세트 추천">
-        <span aria-hidden="true">🎲</span> 무작위 추천
+    <div class="section-label-row">
+      <span class="section-chip chip-accent" aria-hidden="true">번호 추천</span>
+    </div>
+    <h2 id="rec-cta-heading" class="home-section-title">지금 바로 번호를 받아보세요</h2>
+    <p class="home-section-desc">
+      완전 무작위 또는 역대 당첨 합산 구간 분석 기반으로<br class="br-mobile">
+      나만의 행운 번호를 추천받을 수 있습니다.
+    </p>
+
+    <div class="rec-cta-grid">
+
+      <!-- 카드 1: 무작위 -->
+      <a href="{{ url_for('recommend') }}#random" class="rec-cta-card" aria-label="완전 무작위 번호 추천 받기">
+        <div class="rcc-icon-wrap" aria-hidden="true">
+          <div class="rcc-icon-bg rcc-bg-random"></div>
+          <svg class="rcc-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/>
+            <polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/>
+          </svg>
+        </div>
+        <div class="rcc-body">
+          <h3 class="rcc-title">완전 무작위 추천</h3>
+          <p class="rcc-desc">
+            1~45 중 편향 없이 완전 무작위로 6개 번호를 뽑아드립니다.
+            한 번에 최대 5세트까지 생성할 수 있어요.
+          </p>
+          <span class="rcc-tag">최대 5세트 동시 생성</span>
+        </div>
+        <span class="rcc-arrow" aria-hidden="true">→</span>
+      </a>
+
+      <!-- 카드 2: 합산 구간 -->
+      <a href="{{ url_for('recommend') }}#sumrange" class="rec-cta-card" aria-label="합산 구간 기반 번호 추천 받기">
+        <div class="rcc-icon-wrap" aria-hidden="true">
+          <div class="rcc-icon-bg rcc-bg-sum"></div>
+          <svg class="rcc-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/>
+            <line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/>
+          </svg>
+        </div>
+        <div class="rcc-body">
+          <h3 class="rcc-title">합산 구간 기반 추천</h3>
+          <p class="rcc-desc">
+            역대 당첨 번호의 합산 분포를 분석해, 원하는 합계 구간에
+            딱 맞는 번호 조합을 추천해 드립니다.
+          </p>
+          <span class="rcc-tag">통계 기반 스마트 추천</span>
+        </div>
+        <span class="rcc-arrow" aria-hidden="true">→</span>
+      </a>
+
+    </div>
+
+    <!-- 미니 볼 애니메이션 프리뷰 -->
+    <div class="rec-preview" aria-hidden="true" id="recPreview">
+      <span class="rp-label">번호 예시</span>
+      <div class="rp-balls" id="rpBalls">
+        <span class="ball ball-md yellow">7</span>
+        <span class="ball ball-md blue">14</span>
+        <span class="ball ball-md red">23</span>
+        <span class="ball ball-md gray">35</span>
+        <span class="ball ball-md green">42</span>
+        <span class="ball ball-md blue">11</span>
+      </div>
+      <button class="rp-refresh" id="rpRefresh" aria-label="번호 예시 새로고침">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+        </svg>
       </button>
-      <div class="divider-text" aria-hidden="true">또는 합산 구간 선택</div>
-      <div class="sum-range-buttons" role="group" aria-label="합산 구간 선택">
-        {% for sr in sum_ranges %}
-        <button class="btn btn-range"
-                data-min="{{ sr.min }}" data-max="{{ sr.max }}"
-                aria-label="합산 {{ sr.label }} 구간 번호 추천">
-          {{ sr.label }}
-        </button>
-        {% endfor %}
-      </div>
     </div>
 
-    <!-- 결과 출력 영역 -->
-    <div id="homeResult" class="result-area" aria-live="polite" aria-label="추천 번호 결과" hidden>
-      <div class="result-inner">
-        <div id="homeResultContent"></div>
-      </div>
-    </div>
   </div>
 </section>
 
-<!-- ══════════ 서비스 특징 ══════════ -->
-<section class="features-section section" aria-labelledby="features-heading">
+
+<!-- ══════════════════════════════════════════════
+     SECTION 4 : 통계 CTA
+══════════════════════════════════════════════════ -->
+<section class="home-section stats-cta-section" aria-labelledby="stats-cta-heading">
   <div class="container">
-    <h2 id="features-heading" class="section-title">
-      로또의 정석이 특별한 이유
-    </h2>
-    <div class="features-grid" role="list">
-      <article class="feature-card" role="listitem">
-        <div class="feature-icon" aria-hidden="true">📊</div>
-        <h3>데이터 기반 분석</h3>
-        <p>역대 전 회차 당첨 데이터를 매주 자동 수집하여 최신 통계를 제공합니다.</p>
-      </article>
-      <article class="feature-card" role="listitem">
-        <div class="feature-icon" aria-hidden="true">🎯</div>
-        <h3>합산 구간 추천</h3>
-        <p>역대 당첨 번호의 합산 분포를 분석해 확률적으로 유리한 구간을 제안합니다.</p>
-      </article>
-      <article class="feature-card" role="listitem">
-        <div class="feature-icon" aria-hidden="true">🔍</div>
-        <h3>완전 투명 공개</h3>
-        <p>이 사이트에서 추천된 모든 번호를 저장하고, 실제 당첨 시 즉시 공개합니다.</p>
-      </article>
-      <article class="feature-card" role="listitem">
-        <div class="feature-icon" aria-hidden="true">♿</div>
-        <h3>접근성 최적화</h3>
-        <p>스크린 리더 호환 및 키보드 탐색을 지원하여 누구나 편리하게 이용할 수 있습니다.</p>
-      </article>
+
+    <div class="section-label-row">
+      <span class="section-chip chip-stat" aria-hidden="true">통계 분석</span>
+    </div>
+    <h2 id="stats-cta-heading" class="home-section-title">데이터로 보는 로또 패턴</h2>
+    <p class="home-section-desc">
+      수천 회차 누적 데이터를 분석해 번호별 출현 빈도와<br class="br-mobile">
+      합산 구간 분포를 한눈에 시각화합니다.
+    </p>
+
+    <div class="stats-cta-grid">
+
+      <!-- 미니 차트 카드 1 -->
+      <div class="sc-card">
+        <div class="sc-card-header">
+          <span class="sc-card-title">번호별 출현 빈도</span>
+          <span class="sc-card-sub">1~45번 전체 분석</span>
+        </div>
+        <div class="sc-chart-wrap" role="img" aria-label="번호별 출현 빈도 미니 차트">
+          <canvas id="miniFreqChart"></canvas>
+        </div>
+      </div>
+
+      <!-- 미니 차트 카드 2 -->
+      <div class="sc-card">
+        <div class="sc-card-header">
+          <span class="sc-card-title">합산 구간 분포</span>
+          <span class="sc-card-sub">구간별 당첨 집중도</span>
+        </div>
+        <div class="sc-chart-wrap" role="img" aria-label="합산 구간 분포 미니 차트">
+          <canvas id="miniSumChart"></canvas>
+        </div>
+      </div>
+
+      <!-- 텍스트 카드 -->
+      <div class="sc-card sc-card-cta">
+        <div class="sc-cta-body">
+          <p class="sc-cta-headline">더 자세한<br>통계가 궁금하다면?</p>
+          <p class="sc-cta-desc">차트 · 히트맵 · 회차별 테이블 등<br>전체 통계를 확인하세요.</p>
+          <a href="{{ url_for('statistics') }}" class="btn btn-primary btn-lg sc-cta-btn"
+             aria-label="전체 통계 분석 페이지로 이동">
+            통계 전체 보기 →
+          </a>
+        </div>
+      </div>
+
     </div>
   </div>
 </section>
+
+
+<!-- ══════════════════════════════════════════════
+     SECTION 5 : 누적 당첨 현황
+══════════════════════════════════════════════════ -->
+<section class="home-section win-record-section" aria-labelledby="win-record-heading">
+  <div class="container">
+
+    <div class="section-label-row">
+      <span class="section-chip chip-gold" aria-hidden="true">투명 공개</span>
+    </div>
+    <h2 id="win-record-heading" class="home-section-title">이 사이트 누적 당첨 현황</h2>
+    <p class="home-section-desc">
+      로또의 정석에서 추천받은 번호로 실제 당첨된 이력을 투명하게 공개합니다.<br>
+      모든 추천 번호는 DB에 저장되어 매 회차 결과와 대조됩니다.
+    </p>
+
+    {% set total_winners = win_stats[1] + win_stats[2] + win_stats[3] %}
+
+    {% if total_winners == 0 %}
+    <!-- 아직 당첨자 없을 때 -->
+    <div class="first-winner-banner" aria-live="polite">
+      <div class="fwb-glow" aria-hidden="true"></div>
+      <div class="fwb-content">
+        <span class="fwb-trophy" aria-hidden="true">🏆</span>
+        <div class="fwb-text">
+          <strong>아직 첫 번째 행운의 주인공이 나타나지 않았습니다!</strong>
+          <span>지금 번호를 추천받고 역사적인 첫 당첨자가 되어보세요.</span>
+        </div>
+        <a href="{{ url_for('recommend') }}" class="btn btn-accent btn-lg fwb-btn"
+           aria-label="번호 추천받기 페이지로 이동">
+          번호 받으러 가기 →
+        </a>
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="win-record-grid" role="list">
+
+      <article class="wr-card wr-rank1" role="listitem">
+        <div class="wr-rank-badge" aria-label="1등">
+          <span aria-hidden="true">🥇</span> 1등
+        </div>
+        <div class="wr-count">
+          <span class="count-number">{{ win_stats[1] }}</span>
+          <span class="wr-unit">회</span>
+        </div>
+        <p class="wr-desc">
+          6개 번호 전부 일치<br>
+          <small>1등 당첨 누적 횟수</small>
+        </p>
+        {% if win_stats[1] == 0 %}
+        <div class="wr-waiting" aria-label="아직 당첨자 없음">첫 주인공 대기 중</div>
+        {% endif %}
+      </article>
+
+      <article class="wr-card wr-rank2" role="listitem">
+        <div class="wr-rank-badge" aria-label="2등">
+          <span aria-hidden="true">🥈</span> 2등
+        </div>
+        <div class="wr-count">
+          <span class="count-number">{{ win_stats[2] }}</span>
+          <span class="wr-unit">회</span>
+        </div>
+        <p class="wr-desc">
+          5개 + 보너스 번호 일치<br>
+          <small>2등 당첨 누적 횟수</small>
+        </p>
+        {% if win_stats[2] == 0 %}
+        <div class="wr-waiting">첫 주인공 대기 중</div>
+        {% endif %}
+      </article>
+
+      <article class="wr-card wr-rank3" role="listitem">
+        <div class="wr-rank-badge" aria-label="3등">
+          <span aria-hidden="true">🥉</span> 3등
+        </div>
+        <div class="wr-count">
+          <span class="count-number">{{ win_stats[3] }}</span>
+          <span class="wr-unit">회</span>
+        </div>
+        <p class="wr-desc">
+          5개 번호 일치<br>
+          <small>3등 당첨 누적 횟수</small>
+        </p>
+        {% if win_stats[3] == 0 %}
+        <div class="wr-waiting">첫 주인공 대기 중</div>
+        {% endif %}
+      </article>
+
+      <article class="wr-card wr-total" role="listitem">
+        <div class="wr-rank-badge wr-badge-blue">
+          <span aria-hidden="true">📋</span> 전체
+        </div>
+        <div class="wr-count">
+          <span class="count-number">{{ "{:,}".format(total_recommendations) }}</span>
+          <span class="wr-unit">건</span>
+        </div>
+        <p class="wr-desc">
+          누적 번호 생성 건수<br>
+          <small>이 사이트에서 추천된 총합</small>
+        </p>
+      </article>
+
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════
+     SECTION 6 : 로또의 정석이 특별한 이유
+══════════════════════════════════════════════════ -->
+<section class="home-section why-section" aria-labelledby="why-heading">
+  <div class="container">
+
+    <div class="section-label-row">
+      <span class="section-chip chip-dark" aria-hidden="true">Why Us</span>
+    </div>
+    <h2 id="why-heading" class="home-section-title">로또의 정석이 특별한 이유</h2>
+    <p class="home-section-desc">단순한 번호 생성기가 아닙니다. 데이터·투명성·접근성 세 가지를 모두 갖췄습니다.</p>
+
+    <div class="why-grid" role="list">
+
+      <article class="why-card" role="listitem">
+        <div class="why-num" aria-hidden="true">01</div>
+        <div class="why-icon-wrap" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/>
+            <line x1="6" y1="20" x2="6" y2="14"/>
+          </svg>
+        </div>
+        <h3 class="why-title">데이터 기반 분석</h3>
+        <p class="why-desc">
+          1회차부터 최신 회차까지 모든 당첨 번호를 매주 자동 수집합니다.
+          번호별 출현 빈도, 합산 구간 분포 등 실제 통계를 기반으로 추천합니다.
+        </p>
+        <a href="{{ url_for('statistics') }}" class="why-link" aria-label="통계 분석 페이지 바로가기">통계 보기 →</a>
+      </article>
+
+      <article class="why-card" role="listitem">
+        <div class="why-num" aria-hidden="true">02</div>
+        <div class="why-icon-wrap" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+        </div>
+        <h3 class="why-title">합산 구간 스마트 추천</h3>
+        <p class="why-desc">
+          역대 당첨 번호의 합계는 특정 구간에 집중되는 경향이 있습니다.
+          원하는 합산 범위를 직접 선택하면 해당 조건에 맞는 번호를 즉시 추천합니다.
+        </p>
+        <a href="{{ url_for('recommend') }}" class="why-link" aria-label="번호 추천 페이지 바로가기">번호 받기 →</a>
+      </article>
+
+      <article class="why-card" role="listitem">
+        <div class="why-num" aria-hidden="true">03</div>
+        <div class="why-icon-wrap" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+        </div>
+        <h3 class="why-title">100% 투명한 당첨 이력</h3>
+        <p class="why-desc">
+          이 사이트에서 추천된 모든 번호는 DB에 저장됩니다.
+          실제 당첨(1~3등)이 발생하면 메인 화면에 즉시 공개하여 신뢰성을 보장합니다.
+        </p>
+        <span class="why-link why-link-disabled">공개 예정</span>
+      </article>
+
+      <article class="why-card" role="listitem">
+        <div class="why-num" aria-hidden="true">04</div>
+        <div class="why-icon-wrap" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+        </div>
+        <h3 class="why-title">누구나 쉽게, 접근성 최적화</h3>
+        <p class="why-desc">
+          스크린 리더 호환, 키보드 탐색, ARIA 레이블 완비.
+          시각 장애인 등 모든 사용자가 불편 없이 이용할 수 있도록 설계했습니다.
+        </p>
+        <a href="{{ url_for('about') }}" class="why-link" aria-label="서비스 소개 페이지 바로가기">더 알아보기 →</a>
+      </article>
+
+    </div>
+  </div>
+</section>
+
 {% endblock %}
+
 
 {% block extra_scripts %}
 <script src="{{ url_for('static', filename='js/recommend.js') }}"></script>
 <script>
-  // 홈 페이지 빠른 추천 버튼
-  document.getElementById('homeRandomBtn').addEventListener('click', function() {
-    generateNumbers('random', {count: 1}, 'homeResult', 'homeResultContent');
-  });
-
-  document.querySelectorAll('.btn-range').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      const min = parseInt(this.dataset.min);
-      const max = parseInt(this.dataset.max);
-      generateNumbers('sum_range', {sum_min: min, sum_max: max, count: 1}, 'homeResult', 'homeResultContent');
+/* ─── 홈 미니 추천 프리뷰 셔플 ─── */
+(function () {
+  const COLORS = ['yellow','blue','red','gray','green'];
+  function numColor(n) {
+    if (n<=10) return 'yellow';
+    if (n<=20) return 'blue';
+    if (n<=30) return 'red';
+    if (n<=40) return 'gray';
+    return 'green';
+  }
+  function shuffle() {
+    const pool = Array.from({length:45},(_,i)=>i+1);
+    const picked = [];
+    while(picked.length<6){
+      const idx = Math.floor(Math.random()*pool.length);
+      picked.push(pool.splice(idx,1)[0]);
+    }
+    picked.sort((a,b)=>a-b);
+    const wrap = document.getElementById('rpBalls');
+    if(!wrap) return;
+    wrap.innerHTML = '';
+    picked.forEach(function(n, i){
+      const s = document.createElement('span');
+      s.className = 'ball ball-md ' + numColor(n);
+      s.textContent = n;
+      s.setAttribute('aria-hidden','true');
+      s.style.animationDelay = (i*100)+'ms';
+      wrap.appendChild(s);
     });
+  }
+  const btn = document.getElementById('rpRefresh');
+  if(btn) btn.addEventListener('click', function(){
+    shuffle();
+    this.classList.add('spinning');
+    setTimeout(()=>this.classList.remove('spinning'), 600);
   });
+})();
+
+/* ─── 미니 통계 차트 (샘플/API) ─── */
+(function () {
+  /* 번호 빈도 미니 차트 */
+  function drawMiniFreq(data) {
+    const ctx = document.getElementById('miniFreqChart');
+    if (!ctx) return;
+    const labels = data.map(d => d.number);
+    const values = data.map(d => d.count);
+    const colors = data.map(d => {
+      const n = d.number;
+      if (n<=10) return '#F9A825';
+      if (n<=20) return '#1565C0';
+      if (n<=30) return '#C62828';
+      if (n<=40) return '#546E7A';
+      return '#2E7D32';
+    });
+    new Chart(ctx, {
+      type:'bar',
+      data:{ labels, datasets:[{ data:values, backgroundColor:colors, borderRadius:2 }] },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{display:false}, tooltip:{callbacks:{label:c=>`${c.raw}회`}} },
+        scales:{ x:{display:false}, y:{display:false, beginAtZero:true} },
+        animation:{ duration:800 }
+      }
+    });
+  }
+
+  /* 합산 분포 미니 차트 */
+  function drawMiniSum(data) {
+    const ctx = document.getElementById('miniSumChart');
+    if (!ctx) return;
+    const labels = data.map(d => d.range_start+'~'+d.range_end);
+    const values = data.map(d => d.count);
+    new Chart(ctx, {
+      type:'bar',
+      data:{ labels, datasets:[{
+        data:values,
+        backgroundColor: values.map((_,i)=> `rgba(37,99,235,${0.4 + i/values.length*0.5})`),
+        borderRadius:3
+      }] },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{display:false}, tooltip:{callbacks:{label:c=>`${c.raw}회`}} },
+        scales:{ x:{display:false}, y:{display:false, beginAtZero:true} },
+        animation:{ duration:900, delay:200 }
+      }
+    });
+  }
+
+  /* API 호출 */
+  Promise.all([
+    fetch('/api/statistics/frequency').then(r=>r.json()),
+    fetch('/api/statistics/sum_distribution').then(r=>r.json())
+  ]).then(function([freq, sum]) {
+    if (freq.success && freq.data.length) drawMiniFreq(freq.data);
+    if (sum.success  && sum.data.length)  drawMiniSum(sum.data);
+  }).catch(function() {
+    /* 더미 데이터로 차트 렌더 */
+    const dummyFreq = Array.from({length:45},(_,i)=>({number:i+1, count: 10+Math.floor(Math.random()*40)}));
+    const dummySum  = Array.from({length:15},(_,i)=>({range_start:70+i*10, range_end:79+i*10, count:5+Math.floor(Math.random()*80)}));
+    drawMiniFreq(dummyFreq);
+    drawMiniSum(dummySum);
+  });
+})();
 </script>
 {% endblock %}
